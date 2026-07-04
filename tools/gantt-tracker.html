@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Program Gantt & Critical Path Tracker | AexForge</title>
+<meta name="description" content="Deterministic multi-program Gantt chart tracker with critical path method (CPM) highlighting, plus optional AI risk commentary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3;--surface:#FFFFFF;--surface-hover:#FCFAF6;--border:#E1E4DF;
+    --text:#1B2430;--text-soft:#5B6472;--text-faint:#8A9099;
+    --forge:#2E5077;--forge-dark:#1F3A57;--ember:#B2542D;--ember-soft:#F1E2D6;
+    --ok:#3D7A5C;--ok-soft:#DCEBE3;--warn:#B2542D;--warn-soft:#F1E2D6;--danger:#B23D3D;--danger-soft:#F3DCDC;
+    --font-display:'Space Grotesk',sans-serif;--font-body:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    --maxw:860px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-0.01em;margin:0;color:var(--text);}
+  header{position:sticky;top:0;background:rgba(245,246,243,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);z-index:50;}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
+  .back-link{font-family:var(--font-mono);font-size:13px;color:var(--text-soft);}
+  .back-link:hover{color:var(--forge);}
+  .wordmark{font-family:var(--font-display);font-weight:700;font-size:16px;}
+  .wordmark span{color:var(--ember);}
+  .eyebrow{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--forge);display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--forge);}
+  .hero{padding:56px 0 26px;}
+  .hero h1{font-size:clamp(28px,4vw,36px);line-height:1.15;margin-bottom:12px;}
+  .hero p.lede{color:var(--text-soft);font-size:16px;max-width:62ch;margin:0;}
+  section{padding:20px 0;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;}
+  .card + .card{margin-top:16px;}
+  label{display:block;font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-faint);margin-bottom:6px;}
+  textarea,input[type=text],input[type=password]{width:100%;font-family:var(--font-mono);font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);resize:vertical;}
+  textarea:focus,input:focus{outline:none;border-color:var(--forge);}
+  .field{margin-bottom:16px;}
+  .btn{font-family:var(--font-mono);font-size:13.5px;padding:11px 20px;border-radius:7px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;}
+  .btn-primary{background:var(--forge-dark);color:#fff;}
+  .btn-primary:hover{background:var(--forge);}
+  .btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+  .btn-secondary:hover{border-color:var(--forge);color:var(--forge);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px;}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}
+  th{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;color:var(--text-faint);letter-spacing:.04em;}
+  .badge{font-family:var(--font-mono);font-size:11px;padding:3px 9px;border-radius:999px;display:inline-block;white-space:nowrap;}
+  .badge-ok{background:var(--ok-soft);color:var(--ok);}
+  .badge-warn{background:var(--warn-soft);color:var(--warn);}
+  .badge-danger{background:var(--danger-soft);color:var(--danger);}
+  .ai-box{border:1px dashed var(--border);border-radius:10px;padding:16px;margin-top:14px;background:var(--surface-hover);}
+  .ai-box h4{font-size:13.5px;margin-bottom:6px;}
+  .hint{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+  footer{padding:40px 0 60px;text-align:center;font-size:13px;color:var(--text-faint);}
+  .row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  /* ---- Program tabs ---- */
+  .program-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .program-tab{font-family:var(--font-mono);font-size:12.5px;padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;}
+  .program-tab.active{background:var(--forge-dark);color:#fff;border-color:var(--forge-dark);}
+  .program-panel{display:none;}
+  .program-panel.active{display:block;}
+
+  /* ---- Gantt chart ---- */
+  .gantt-wrap{overflow-x:auto;margin-top:8px;}
+  .gantt-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
+  .gantt-label{width:190px;flex-shrink:0;font-size:12.5px;color:var(--text);}
+  .gantt-label .id-tag{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-right:6px;}
+  .gantt-track{position:relative;flex:1;min-width:340px;height:20px;background:var(--surface-hover);border-radius:5px;}
+  .gantt-bar{position:absolute;top:0;height:100%;border-radius:5px;background:var(--forge);}
+  .gantt-bar.critical{background:var(--ember);}
+  .gantt-bar .bar-label{position:absolute;left:8px;top:0;font-family:var(--font-mono);font-size:10px;line-height:20px;color:#fff;white-space:nowrap;}
+  .gantt-legend{display:flex;gap:18px;margin-top:14px;font-size:12.5px;color:var(--text-soft);}
+  .gantt-legend .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px;}
+
+  .summary-stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+  .stat-chip{font-family:var(--font-mono);font-size:12.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface-hover);color:var(--text);}
+  .stat-chip strong{color:var(--forge-dark);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="back-link" href="../index.html">← Back to AexForge</a>
+    <div class="wordmark">Aex<span>Forge</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Agentic Tool · 6 of 6</p>
+    <h1>Multi-Program Gantt & Critical Path Tracker</h1>
+    <p class="lede">
+      Paste tasks across one or more programs. Schedule dates, float, and the
+      critical path are computed deterministically with the Critical Path
+      Method (CPM) — no AI involved in the math — with an optional AI layer
+      to narrate which programs carry the most schedule risk.
+    </p>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="field">
+        <label>Tasks — one per line: program, id, name, duration_days, dependencies (semicolon-separated ids, optional)</label>
+        <textarea id="taskInput" rows="10" placeholder="Platform Modernization, A, Requirements, 5,
+Platform Modernization, B, Design, 8, A
+Platform Modernization, C, Development, 15, B
+Platform Modernization, D, Testing, 6, C
+Platform Modernization, E, Documentation, 4, B
+Platform Modernization, F, Deployment, 3, D;E
+Data Migration, G, Extract, 4,
+Data Migration, H, Transform, 6, G
+Data Migration, I, Load & Validate, 3, H"></textarea>
+        <p class="hint">Day 0 is the program start. Dependencies reference the id column, separated by semicolons.</p>
+      </div>
+      <button class="btn btn-primary" onclick="runTracker()">Build Gantt & find critical path →</button>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <div class="program-tabs" id="programTabs"></div>
+      <div id="programPanels"></div>
+    </div>
+
+    <div class="card ai-box">
+      <h4>AI Assist (optional)</h4>
+      <p class="hint" style="margin:0 0 10px;">
+        Get a short narrative on which program(s) carry the most schedule
+        risk, based on critical path length and near-critical float. Your
+        Groq API key stays in your browser for this session only.
+      </p>
+      <div class="field">
+        <label>Groq API key</label>
+        <input type="password" id="apiKey" placeholder="gsk_...">
+      </div>
+      <div class="row-flex">
+        <button class="btn btn-secondary" onclick="runAI()">Generate risk narrative</button>
+        <span class="hint" id="aiStatus"></span>
+      </div>
+      <div id="aiNarrative"></div>
+    </div>
+  </section>
+</main>
+
+<footer>Part of the AexForge agentic AI toolkit — deterministic core, optional AI layer.</footer>
+
+<script>
+  let programResults = {}; // { programName: [{id,name,duration,deps,es,ef,ls,lf,float,critical}] }
+
+  function parseTasks(raw){
+    const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    const rows = lines.map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      const [program, id, name, durationStr, depsStr] = parts;
+      const duration = parseFloat(durationStr);
+      const deps = (depsStr || '').split(';').map(d => d.trim()).filter(Boolean);
+      return { program, id, name, duration, deps };
+    }).filter(t => t.program && t.id && t.name && !isNaN(t.duration));
+
+    const byProgram = {};
+    rows.forEach(t => {
+      if (!byProgram[t.program]) byProgram[t.program] = [];
+      byProgram[t.program].push(t);
+    });
+    return byProgram;
+  }
+
+  // Deterministic Critical Path Method — forward pass, backward pass, float.
+  function computeCPM(tasks){
+    const ES = {}, EF = {};
+    tasks.forEach(t => { ES[t.id] = 0; EF[t.id] = t.duration; });
+
+    // Relax repeatedly — enough passes to converge for any acyclic dependency chain.
+    for (let iter = 0; iter <= tasks.length; iter++){
+      tasks.forEach(t => {
+        let es = 0;
+        t.deps.forEach(d => { if (EF[d] !== undefined) es = Math.max(es, EF[d]); });
+        ES[t.id] = es;
+        EF[t.id] = es + t.duration;
+      });
+    }
+
+    const projectEnd = Math.max(...tasks.map(t => EF[t.id]));
+    const LF = {}, LS = {};
+    tasks.forEach(t => { LF[t.id] = projectEnd; LS[t.id] = projectEnd - t.duration; });
+
+    for (let iter = 0; iter <= tasks.length; iter++){
+      tasks.forEach(t => {
+        const successors = tasks.filter(s => s.deps.includes(t.id));
+        let lf = projectEnd;
+        if (successors.length) lf = Math.min(...successors.map(s => LS[s.id]));
+        LF[t.id] = lf;
+        LS[t.id] = lf - t.duration;
+      });
+    }
+
+    return tasks.map(t => {
+      const float = LS[t.id] - ES[t.id];
+      return { ...t, es: ES[t.id], ef: EF[t.id], ls: LS[t.id], lf: LF[t.id], float, critical: Math.abs(float) < 1e-6 };
+    });
+  }
+
+  function runTracker(){
+    const raw = document.getElementById('taskInput').value;
+    const byProgram = parseTasks(raw);
+    programResults = {};
+    Object.keys(byProgram).forEach(program => {
+      programResults[program] = computeCPM(byProgram[program]);
+    });
+    render();
+  }
+
+  function render(){
+    const programs = Object.keys(programResults);
+    const tabsEl = document.getElementById('programTabs');
+    const panelsEl = document.getElementById('programPanels');
+
+    tabsEl.innerHTML = programs.map((p, i) =>
+      `<button class="program-tab${i === 0 ? ' active' : ''}" data-program="${escapeAttr(p)}">${p}</button>`
+    ).join('');
+
+    panelsEl.innerHTML = programs.map((program, i) => {
+      const tasks = programResults[program];
+      const projectEnd = Math.max(...tasks.map(t => t.ef));
+      const criticalCount = tasks.filter(t => t.critical).length;
+      const scale = 620 / Math.max(projectEnd, 1);
+
+      const rows = tasks.map(t => `
+        <div class="gantt-row">
+          <div class="gantt-label"><span class="id-tag">${t.id}</span>${t.name}</div>
+          <div class="gantt-track">
+            <div class="gantt-bar${t.critical ? ' critical' : ''}" style="left:${t.es * scale}px; width:${Math.max(t.duration * scale, 4)}px;">
+              <span class="bar-label">${t.duration}d</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const tableRows = tasks.map(t => `
+        <tr>
+          <td>${t.id}</td>
+          <td>${t.name}</td>
+          <td>${t.duration}</td>
+          <td>${t.es}</td>
+          <td>${t.ef}</td>
+          <td>${t.ls}</td>
+          <td>${t.lf}</td>
+          <td>${t.float}</td>
+          <td>${t.critical ? '<span class="badge badge-danger">Critical</span>' : '<span class="badge badge-ok">Float</span>'}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="program-panel${i === 0 ? ' active' : ''}" data-program="${escapeAttr(program)}">
+          <div class="summary-stats">
+            <span class="stat-chip">Program length: <strong>${projectEnd}d</strong></span>
+            <span class="stat-chip">Tasks: <strong>${tasks.length}</strong></span>
+            <span class="stat-chip">Critical path tasks: <strong>${criticalCount}</strong></span>
+          </div>
+          <div class="gantt-wrap">
+            ${rows}
+          </div>
+          <div class="gantt-legend">
+            <span><span class="swatch" style="background:var(--ember);"></span>Critical path (zero float)</span>
+            <span><span class="swatch" style="background:var(--forge);"></span>Has float / slack</span>
+          </div>
+          <table style="margin-top:22px;">
+            <thead><tr><th>ID</th><th>Task</th><th>Dur</th><th>ES</th><th>EF</th><th>LS</th><th>LF</th><th>Float</th><th>Status</th></tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.program-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const program = tab.dataset.program;
+        document.querySelectorAll('.program-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.program-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelector(`.program-panel[data-program="${cssEscape(program)}"]`).classList.add('active');
+      });
+    });
+
+    document.getElementById('resultsCard').style.display = 'block';
+    document.getElementById('aiNarrative').innerHTML = '';
+  }
+
+  function escapeAttr(s){ return String(s).replace(/"/g, '&quot;'); }
+  function cssEscape(s){ return String(s).replace(/"/g, '\\"'); }
+
+  async function runAI(){
+    const key = document.getElementById('apiKey').value.trim();
+    const statusEl = document.getElementById('aiStatus');
+    const narrativeEl = document.getElementById('aiNarrative');
+    const programs = Object.keys(programResults);
+
+    if (!key){ statusEl.textContent = 'Add your Groq API key first.'; return; }
+    if (programs.length === 0){ statusEl.textContent = 'Build the Gantt chart first.'; return; }
+
+    statusEl.textContent = `Analyzing risk across ${programs.length} program(s)...`;
+
+    const summary = programs.map(program => {
+      const tasks = programResults[program];
+      const projectEnd = Math.max(...tasks.map(t => t.ef));
+      const critical = tasks.filter(t => t.critical).map(t => t.name);
+      const nearCritical = tasks.filter(t => !t.critical && t.float <= 2).map(t => `${t.name} (float ${t.float}d)`);
+      return `Program: ${program}\nLength: ${projectEnd} days\nCritical path tasks: ${critical.join(', ') || 'none'}\nNear-critical (float <= 2d): ${nearCritical.join(', ') || 'none'}`;
+    }).join('\n\n');
+
+    try{
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.3,
+          max_tokens: 250,
+          messages: [
+            { role:'system', content:'You are a program delivery analyst. Given critical path data for one or more programs, write a short narrative (3-5 sentences) identifying which program(s) carry the most schedule risk and why, based only on the given critical path and float data. Do not invent data not present.' },
+            { role:'user', content: summary }
+          ]
+        })
+      });
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content?.trim() || 'No response.';
+      narrativeEl.innerHTML = `<p style="font-size:14px;color:var(--text-soft);margin-top:14px;">${text}</p>`;
+      statusEl.textContent = 'Done.';
+    } catch(err){
+      statusEl.textContent = 'AI request failed — check key/network.';
+    }
+  }
+</script>
+
+</body>
+</html>
