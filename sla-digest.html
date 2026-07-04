@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLA Breach Risk Digest | AexForge</title>
+<meta name="description" content="Deterministic SLA breach risk checker with optional AI-written summaries for at-risk tickets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3;--surface:#FFFFFF;--surface-hover:#FCFAF6;--border:#E1E4DF;
+    --text:#1B2430;--text-soft:#5B6472;--text-faint:#8A9099;
+    --forge:#2E5077;--forge-dark:#1F3A57;--ember:#B2542D;--ember-soft:#F1E2D6;
+    --ok:#3D7A5C;--ok-soft:#DCEBE3;--warn:#B2542D;--warn-soft:#F1E2D6;--danger:#B23D3D;--danger-soft:#F3DCDC;
+    --font-display:'Space Grotesk',sans-serif;--font-body:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    --maxw:860px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-0.01em;margin:0;color:var(--text);}
+  header{position:sticky;top:0;background:rgba(245,246,243,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);z-index:50;}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
+  .back-link{font-family:var(--font-mono);font-size:13px;color:var(--text-soft);}
+  .back-link:hover{color:var(--forge);}
+  .wordmark{font-family:var(--font-display);font-weight:700;font-size:16px;}
+  .wordmark span{color:var(--ember);}
+  .eyebrow{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--forge);display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--forge);}
+  .hero{padding:56px 0 26px;}
+  .hero h1{font-size:clamp(28px,4vw,36px);line-height:1.15;margin-bottom:12px;}
+  .hero p.lede{color:var(--text-soft);font-size:16px;max-width:62ch;margin:0;}
+  section{padding:20px 0;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;}
+  .card + .card{margin-top:16px;}
+  label{display:block;font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-faint);margin-bottom:6px;}
+  textarea,input[type=text],input[type=password]{width:100%;font-family:var(--font-mono);font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);resize:vertical;}
+  textarea:focus,input:focus{outline:none;border-color:var(--forge);}
+  .field{margin-bottom:16px;}
+  .btn{font-family:var(--font-mono);font-size:13.5px;padding:11px 20px;border-radius:7px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;}
+  .btn-primary{background:var(--forge-dark);color:#fff;}
+  .btn-primary:hover{background:var(--forge);}
+  .btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+  .btn-secondary:hover{border-color:var(--forge);color:var(--forge);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px;}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}
+  th{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;color:var(--text-faint);letter-spacing:.04em;}
+  .badge{font-family:var(--font-mono);font-size:11px;padding:3px 9px;border-radius:999px;display:inline-block;white-space:nowrap;}
+  .badge-ok{background:var(--ok-soft);color:var(--ok);}
+  .badge-warn{background:var(--warn-soft);color:var(--warn);}
+  .badge-danger{background:var(--danger-soft);color:var(--danger);}
+  .ai-box{border:1px dashed var(--border);border-radius:10px;padding:16px;margin-top:14px;background:var(--surface-hover);}
+  .ai-box h4{font-size:13.5px;margin-bottom:6px;}
+  .hint{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+  .summary-line{font-size:13px;color:var(--text-soft);margin-top:4px;}
+  footer{padding:40px 0 60px;text-align:center;font-size:13px;color:var(--text-faint);}
+  .row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="back-link" href="../index.html">← Back to AexForge</a>
+    <div class="wordmark">Aex<span>Forge</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Agentic Tool · 1 of 5</p>
+    <h1>SLA Breach Risk Digest</h1>
+    <p class="lede">
+      Paste a ticket export. Risk is calculated deterministically —
+      no AI, no guessing — with an optional AI-written one-line summary
+      for anything flagged at risk.
+    </p>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="field">
+        <label>Ticket rows — one per line: id, created_datetime (ISO), severity, sla_hours</label>
+        <textarea id="ticketInput" rows="7" placeholder="INC-1042, 2026-07-03T10:00:00, High, 8
+INC-1043, 2026-07-04T02:00:00, Medium, 24
+INC-1044, 2026-07-01T09:00:00, Critical, 4"></textarea>
+        <p class="hint">Dates are read as your local time. Format strictly: id, ISO datetime, severity, sla_hours.</p>
+      </div>
+      <button class="btn btn-primary" onclick="analyze()">Analyze risk →</button>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <h3 style="margin-bottom:14px;">Results</h3>
+      <table>
+        <thead><tr><th>Ticket</th><th>Severity</th><th>Elapsed</th><th>SLA</th><th>Status</th><th>AI summary</th></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card ai-box">
+      <h4>AI Assist (optional)</h4>
+      <p class="hint" style="margin:0 0 10px;">
+        Bring your own Groq API key to auto-generate a plain-English summary
+        for each at-risk/breached ticket. The key is used only in your
+        browser for this session — never stored or sent anywhere else.
+      </p>
+      <div class="field">
+        <label>Groq API key</label>
+        <input type="password" id="apiKey" placeholder="gsk_...">
+      </div>
+      <div class="row-flex">
+        <button class="btn btn-secondary" onclick="runAI()">Generate summaries</button>
+        <span class="hint" id="aiStatus"></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>Part of the AexForge agentic AI toolkit — deterministic core, optional AI layer.</footer>
+
+<script>
+  let lastRows = [];
+
+  function parseTickets(text){
+    return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      const [id, created, severity, slaHours] = parts;
+      return { id, created, severity, slaHours: parseFloat(slaHours) };
+    }).filter(r => r.id && r.created && !isNaN(r.slaHours));
+  }
+
+  function analyze(){
+    const raw = document.getElementById('ticketInput').value;
+    const rows = parseTickets(raw);
+    const now = new Date();
+
+    const results = rows.map(r => {
+      const created = new Date(r.created);
+      let elapsedH = null, status = 'Unknown';
+      if (!isNaN(created.getTime())){
+        elapsedH = (now - created) / (1000*60*60);
+        if (elapsedH >= r.slaHours) status = 'Breached';
+        else if (elapsedH >= 0.8 * r.slaHours) status = 'At Risk';
+        else status = 'OK';
+      }
+      return { ...r, elapsedH, status, aiSummary: '' };
+    }).sort((a,b) => rank(b.status) - rank(a.status));
+
+    lastRows = results;
+    renderResults();
+  }
+
+  function rank(status){
+    return { 'Breached': 3, 'At Risk': 2, 'Unknown': 1, 'OK': 0 }[status] ?? 0;
+  }
+
+  function badgeClass(status){
+    if (status === 'Breached') return 'badge-danger';
+    if (status === 'At Risk') return 'badge-warn';
+    if (status === 'OK') return 'badge-ok';
+    return 'badge-warn';
+  }
+
+  function renderResults(){
+    const body = document.getElementById('resultsBody');
+    body.innerHTML = lastRows.map((r,i) => `
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.severity || '—'}</td>
+        <td>${r.elapsedH !== null ? r.elapsedH.toFixed(1) + 'h' : '—'}</td>
+        <td>${r.slaHours}h</td>
+        <td><span class="badge ${badgeClass(r.status)}">${r.status}</span></td>
+        <td>${r.aiSummary ? r.aiSummary : '<span class="hint">—</span>'}</td>
+      </tr>
+    `).join('');
+    document.getElementById('resultsCard').style.display = 'block';
+  }
+
+  async function runAI(){
+    const key = document.getElementById('apiKey').value.trim();
+    const statusEl = document.getElementById('aiStatus');
+    if (!key){ statusEl.textContent = 'Add your Groq API key first.'; return; }
+    if (lastRows.length === 0){ statusEl.textContent = 'Run "Analyze risk" first.'; return; }
+
+    const flagged = lastRows.filter(r => r.status === 'At Risk' || r.status === 'Breached');
+    if (flagged.length === 0){ statusEl.textContent = 'No at-risk or breached tickets to summarize.'; return; }
+
+    statusEl.textContent = `Generating summaries for ${flagged.length} ticket(s)...`;
+
+    for (const row of flagged){
+      try{
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${key}` },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.2,
+            max_tokens: 60,
+            messages: [
+              { role:'system', content:'Write one plain-English sentence summarizing SLA risk for an incident ticket. No preamble.' },
+              { role:'user', content:`Ticket ${row.id}, severity ${row.severity}, elapsed ${row.elapsedH.toFixed(1)}h of ${row.slaHours}h SLA, status ${row.status}.` }
+            ]
+          })
+        });
+        const data = await res.json();
+        row.aiSummary = data?.choices?.[0]?.message?.content?.trim() || '(no response)';
+      } catch(err){
+        row.aiSummary = 'AI request failed — check key/network.';
+      }
+    }
+    renderResults();
+    statusEl.textContent = 'Done.';
+  }
+</script>
+
+</body>
+</html>
