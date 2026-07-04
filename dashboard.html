@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive Dashboard — AexForge</title>
+<meta name="description" content="Executive delivery dashboard: leadership summary, test delivery tracking, risk register, stakeholder reporting, and portfolio KPIs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   AexForge — shared design tokens & components
+   Used by: index.html, about.html, projects.html, dashboard.html,
+   and everything under /tools/
+   ========================================================== */
+
+:root{
+  --bg:            #F5F6F3;
+  --surface:       #FFFFFF;
+  --surface-hover: #FCFAF6;
+  --border:        #E1E4DF;
+  --text:          #1B2430;
+  --text-soft:     #5B6472;
+  --text-faint:    #8A9099;
+  --forge:         #2E5077;
+  --forge-dark:    #1F3A57;
+  --ember:         #B2542D;
+  --ember-soft:    #F1E2D6;
+  --ok:            #3D7A5C;
+  --warn:          #A6741C;
+  --danger:        #B23A3A;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --maxw: 1080px;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::selection{ background: var(--ember-soft); color: var(--ember); }
+
+a{ color: inherit; text-decoration: none; }
+img{ max-width:100%; display:block; }
+
+.wrap{
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+h1,h2,h3{
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--forge);
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin: 0 0 14px 0;
+}
+.eyebrow::before{
+  content:"";
+  width: 22px;
+  height: 1px;
+  background: var(--forge);
+  display:inline-block;
+}
+
+/* ---------- Header / nav ---------- */
+header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(245,246,243,0.86);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 18px 0;
+}
+.wordmark{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.wordmark span{ color: var(--ember); }
+.navlinks{
+  display:flex;
+  gap: 28px;
+  font-size: 14.5px;
+  color: var(--text-soft);
+}
+.navlinks a{ transition: color .15s ease; }
+.navlinks a:hover, .navlinks a:focus-visible{ color: var(--forge); }
+.navlinks a.active{ color: var(--forge-dark); font-weight: 600; }
+.nav-cta{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid var(--forge-dark);
+  border-radius: 6px;
+  color: var(--forge-dark);
+  transition: background .15s ease, color .15s ease;
+}
+.nav-cta:hover, .nav-cta:focus-visible{
+  background: var(--forge-dark);
+  color: #fff;
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  padding: 12px 20px;
+  border-radius: 7px;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn-primary{
+  background: var(--forge-dark);
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus-visible{
+  background: var(--forge);
+  box-shadow: 0 6px 18px rgba(31,58,87,0.25);
+  transform: translateY(-1px);
+}
+.btn-ghost{
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+.btn-ghost:hover, .btn-ghost:focus-visible{
+  border-color: var(--forge);
+  color: var(--forge);
+}
+
+/* ---------- Section shell ---------- */
+section{ padding: 64px 0; }
+.section-head{ margin-bottom: 34px; }
+.section-head h2{ font-size: 26px; }
+.page-hero{ padding: 56px 0 8px; }
+.page-hero p.lede{
+  margin: 16px 0 0;
+  font-size: 16.5px;
+  color: var(--text-soft);
+  max-width: 62ch;
+}
+
+/* ---------- About-style focus list ---------- */
+.focus-list{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+.focus-list li{
+  display:flex;
+  gap: 12px;
+  align-items:flex-start;
+  font-size: 14.5px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.focus-list li .dot{
+  width: 6px; height:6px; border-radius:50%;
+  background: var(--ember);
+  margin-top: 7px;
+  flex-shrink:0;
+}
+
+/* ---------- Skills ---------- */
+.skill-group{ margin-bottom: 22px; }
+.skill-group h3{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.pill-row{ display:flex; flex-wrap:wrap; gap: 9px; }
+.pill{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.skill-columns{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.skill-columns .column-label{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--forge);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---------- Projects ---------- */
+.project-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.project-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.project-card:hover{
+  border-color: var(--forge);
+  transform: translateY(-2px);
+}
+.project-card h3{ font-size: 17px; }
+.project-card p{
+  color: var(--text-soft);
+  font-size: 14px;
+  margin: 0;
+  flex-grow: 1;
+}
+.project-tags{ display:flex; flex-wrap:wrap; gap: 6px; margin-top: 4px; }
+.tag-sm{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ember-soft);
+  color: var(--ember);
+}
+.project-links{
+  display:flex; gap: 14px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.project-links a{ color: var(--forge); }
+.project-links a:hover{ text-decoration: underline; }
+
+.repo-note{
+  font-size: 13.5px;
+  color: var(--text-faint);
+  margin-top: -18px;
+  margin-bottom: 26px;
+}
+#repo-status{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-faint);
+  padding: 20px 0;
+}
+#repo-status.is-error{ color: var(--ember); }
+
+/* ---------- Contact ---------- */
+#contact{
+  background: var(--forge-dark);
+  color: #EFF3F6;
+  border-radius: 20px;
+  margin: 30px 0 70px;
+  padding: 56px 44px;
+}
+#contact h2{ color: #fff; font-size: 28px; }
+#contact p{ color: #C7D3DD; max-width: 52ch; margin: 14px 0 26px; font-size: 15.5px; }
+#contact .btn-primary{ background: var(--ember); }
+#contact .btn-primary:hover{
+  background: #c66435;
+  box-shadow: 0 6px 18px rgba(178,84,45,0.35);
+}
+#contact .btn-ghost{
+  background: transparent;
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+}
+#contact .btn-ghost:hover{ border-color: #fff; }
+
+footer{
+  padding: 30px 0 50px;
+  font-size: 13px;
+  color: var(--text-faint);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap: 10px;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+  outline: 2px solid var(--forge);
+  outline-offset: 2px;
+}
+
+/* ---------- Access gate (used by projects.html & dashboard.html) ---------- */
+.gate-screen{
+  min-height: 60vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 60px 28px;
+}
+.gate-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 40px -28px rgba(27,36,48,0.35);
+}
+.gate-card h2{ font-size: 21px; margin-bottom: 8px; }
+.gate-card p{ color: var(--text-soft); font-size: 14px; margin: 0 0 20px; }
+.gate-form{ display:flex; flex-direction:column; gap: 12px; }
+.gate-form input[type="password"]{
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+}
+.gate-error{
+  font-size: 13px;
+  color: var(--danger);
+  min-height: 18px;
+}
+.gated-content{ display:none; }
+.gated-content.is-unlocked{ display:block; }
+
+/* ---------- Generic form fields (case-study tool pages) ---------- */
+.field-label{
+  display:block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+textarea.tool-input, input.tool-input{
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+  /* Intentionally no maxlength attribute anywhere and no CSS text-overflow/line-clamp
+     applied to inputs — see note in tools/README. */
+}
+
+@media (max-width: 820px){
+  .navlinks{ display:none; }
+  .project-grid{ grid-template-columns: 1fr; }
+  .skill-columns{ grid-template-columns: 1fr; }
+  #contact{ padding: 40px 24px; }
+}
+
+</style>
+<style>
+  .dash-note{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 40px;
+  }
+  .dash-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .stat-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .stat-card .label{
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  .stat-card .value{ font-family: var(--font-display); font-size: 28px; font-weight:600; }
+  .stat-card .sub{ font-size: 13px; color: var(--text-soft); margin-top: 4px; }
+
+  .dash-panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 26px 22px;
+    margin-bottom: 26px;
+  }
+  .dash-panel h2{ font-size: 19px; margin-bottom: 4px; }
+  .dash-panel .panel-sub{ font-size: 13.5px; color: var(--text-soft); margin: 0 0 18px; }
+
+  table.dash-table{ width:100%; border-collapse: collapse; font-size: 13.5px; }
+  table.dash-table th{
+    text-align:left;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+  table.dash-table td{
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  table.dash-table tr:last-child td{ border-bottom:none; }
+
+  .status-pill{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    display:inline-block;
+    white-space: nowrap;
+  }
+  .status-ok{ background: #DEEBE4; color: var(--ok); }
+  .status-warn{ background: #F3E7CE; color: var(--warn); }
+  .status-danger{ background: #F4DEDE; color: var(--danger); }
+
+  .kpi-tabs{ display:flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .kpi-tab{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-soft);
+    cursor: pointer;
+  }
+  .kpi-tab.active{ background: var(--forge-dark); color:#fff; border-color: var(--forge-dark); }
+  .kpi-level{ display:none; }
+  .kpi-level.active{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .kpi-item{
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: var(--surface-hover);
+  }
+  .kpi-item .kpi-name{ font-size: 13px; color: var(--text-soft); margin-bottom: 6px; }
+  .kpi-item .kpi-val{ font-family: var(--font-display); font-size: 20px; font-weight:600; }
+
+  @media (max-width: 900px){
+    .dash-grid{ grid-template-columns: 1fr 1fr; }
+    .kpi-level.active{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px){
+    .dash-grid{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="wordmark" href="index.html">Aex<span>Forge</span></a>
+    <nav class="navlinks">
+      <a href="about.html">About</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="projects.html">Projects</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="nav-cta" href="https://github.com/AexForge" target="_blank" rel="noopener">github.com/AexForge</a>
+  </div>
+</header>
+
+<!-- ACCESS GATE -->
+<div class="gate-screen" id="gate-screen">
+  <div class="wrap" style="padding:0; display:flex; justify-content:center;">
+    <div class="gate-card">
+      <p class="eyebrow">Access required</p>
+      <h2>Dashboard is password-protected</h2>
+      <p>Enter the password to view the executive dashboard.</p>
+      <form class="gate-form" id="gate-form">
+        <input type="password" id="gate-password" placeholder="Password" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary">Unlock</button>
+        <p class="gate-error" id="gate-error"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<main class="gated-content" id="gated-content">
+  <section class="page-hero wrap">
+    <p class="eyebrow">Executive Dashboard</p>
+    <h1 style="font-size:clamp(28px,4vw,38px); line-height:1.15;">Delivery, risk, and portfolio view</h1>
+    <p class="lede">A single view for leadership: status, test delivery, risk, stakeholder reporting, decision support, and KPI roll-ups across project, program, and portfolio.</p>
+    <p class="dash-note">Sample / placeholder data — for demonstration of the dashboard layout only.</p>
+  </section>
+
+  <!-- 1. EXECUTIVE LEADERSHIP SUMMARY -->
+  <section class="wrap" style="padding-top:0;">
+    <div class="section-head">
+      <p class="eyebrow">1 · Leadership Summary</p>
+      <h2>Executive summary</h2>
+    </div>
+    <div class="dash-grid">
+      <div class="stat-card">
+        <div class="label">Overall program health</div>
+        <div class="value">Amber</div>
+        <div class="sub">2 of 6 workstreams at risk</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Budget utilization</div>
+        <div class="value">71%</div>
+        <div class="sub">On track vs. plan (73%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Milestones this quarter</div>
+        <div class="value">8 / 11</div>
+        <div class="sub">3 milestones slipped &lt; 2 weeks</div>
+      </div>
+    </div>
+    <div class="dash-panel">
+      <h2>Headline narrative</h2>
+      <p class="panel-sub">One-paragraph summary a sponsor can read in 30 seconds.</p>
+      <p style="font-size:14.5px; color:var(--text-soft); margin:0;">
+        Delivery is broadly on track. Two workstreams (Data Migration, Vendor Integration) are flagged
+        amber due to dependency delays; mitigation plans are in place with revised dates inside two weeks.
+        No red risks this cycle. Budget and scope remain within approved thresholds.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. TEST DELIVERY TRACKING -->
+  <section class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">2 · Test Delivery Manager (AI-assisted)</p>
+      <h2>Test delivery tracking</h2>
+    </div>
+    <div class="dash-panel">
+      <p class="panel-sub">Test execution progress by workstream, tracked with AI-assisted triage of failures.</p>
+      <table class="dash-table">
+        <thead>
+          <tr><th>Workstream</th><th>Planned</th><th>Executed</th><th>Pass rate</th><th>Open defects</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Core Platform</td><td>420</td><td>402</td><td>96%</td><td>4</td><td><span class="status-pill status-ok">On track</span></td></tr>
+          <tr><td>Data Migration</td><td>180</td><td>140</td><td>84%</td><td>11</td><td><span class="status-pill status-warn">At risk</span></td></tr>
+          <tr><td>Vendor Integration</td><td>96</td><td>60</td><td>77%</td><td>9</td><td><span class="status-pill status-warn">At risk</span></td></tr>
+          <tr><td>Reporting Layer</td><td>75</td><td>75</td><td>99%</td><td>0</td><td><span class="status-pill status-ok">Complete</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. RISK REGISTER -->
+  <section class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">3 · Risk Register</p>
+      <h2>Top tracked risks</h2>
+    </div>
+    <div class="dash-panel">
+      <table class="dash-table">
+        <thead>
+          <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Owner</th><th>Mitigation</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Vendor API schema change delays integration</td>
+            <td>Medium</td><td>High</td><td>Integration Lead</td>
+            <td>Adapter layer in progress; fallback to manual export</td>
+            <td><span class="status-pill status-warn">Monitoring</span></td>
+          </tr>
+          <tr>
+            <td>Legacy data quality issues in migration set</td>
+            <td>High</td><td>Medium</td><td>Data Lead</td>
+            <td>Automated cleansing rules added to pipeline</td>
+            <td><span class="status-pill status-warn">Mitigating</span></td>
+          </tr>
+          <tr>
+            <td>Key SME availability during UAT window</td>
+            <td>Low</td><td>Medium</td><td>Test Delivery Manager</td>
+            <td>Backup SME identified and briefed</td>
+            <td><span class="status-pill status-ok">Controlled</span></td>
+          </tr>
+          <tr>
+            <td>Regulatory reporting deadline compresses test window</td>
+            <td>Medium</td><td>High</td><td>Program Manager</td>
+            <td>Parallel test tracks approved</td>
+            <td><span class="status-pill status-danger">Watch closely</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4. REPORTING CADENCE -->
+  <section class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">4 · Stakeholder Reporting</p>
+      <h2>Reporting cadence &amp; variance</h2>
+    </div>
+    <div class="dash-panel">
+      <p class="panel-sub">Variance, business impact, and recommended options — as shared at each cadence.</p>
+      <table class="dash-table">
+        <thead>
+          <tr><th>Cadence</th><th>Audience</th><th>Variance</th><th>Business impact</th><th>Recommended option</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Weekly</td><td>Delivery leads</td>
+            <td>-3 days on Vendor Integration</td>
+            <td>Low — inside contingency buffer</td>
+            <td>Continue monitoring, no escalation</td>
+          </tr>
+          <tr>
+            <td>Bi-weekly</td><td>Steering committee</td>
+            <td>+2% cost variance (Data Migration)</td>
+            <td>Medium — approaching contingency limit</td>
+            <td>Approve additional 1 FTE for 3 weeks</td>
+          </tr>
+          <tr>
+            <td>Monthly</td><td>Executive sponsors</td>
+            <td>Scope hold on Phase 2 features</td>
+            <td>Low — no committed date impact</td>
+            <td>Confirm Phase 2 scope freeze through UAT</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5. DATA-DRIVEN DECISION PLATFORM -->
+  <section class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">5 · Decision Support</p>
+      <h2>Data-driven decision platform</h2>
+    </div>
+    <div class="dash-grid">
+      <div class="stat-card">
+        <div class="label">Decisions logged this quarter</div>
+        <div class="value">14</div>
+        <div class="sub">9 approved, 3 deferred, 2 declined</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg. time to decision</div>
+        <div class="value">4.2 days</div>
+        <div class="sub">Down from 6.5 days last quarter</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Data sources feeding decisions</div>
+        <div class="value">6</div>
+        <div class="sub">Common Data Framework-aligned</div>
+      </div>
+    </div>
+    <div class="dash-panel">
+      <h2>Latest logged decision</h2>
+      <p class="panel-sub">Every recommendation ties back to the data that supported it.</p>
+      <p style="font-size:14.5px; color:var(--text-soft); margin:0;">
+        <strong>Decision:</strong> Approve extra QA capacity for Vendor Integration.
+        <strong>Basis:</strong> Defect trend + test-execution burn-down showed pass rate would miss target
+        without added capacity. <strong>Outcome:</strong> Approved, effective next sprint.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6. STRATEGY SUMMARIZATION / KPI ROLL-UP -->
+  <section class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">6 · Strategy Summarization</p>
+      <h2>Project, Program &amp; Portfolio KPIs</h2>
+    </div>
+    <div class="dash-panel">
+      <div class="kpi-tabs">
+        <button class="kpi-tab active" data-level="project">Project level</button>
+        <button class="kpi-tab" data-level="program">Program level</button>
+        <button class="kpi-tab" data-level="portfolio">Portfolio level</button>
+      </div>
+
+      <div class="kpi-level active" data-level="project">
+        <div class="kpi-item"><div class="kpi-name">Schedule variance</div><div class="kpi-val">-3 days</div></div>
+        <div class="kpi-item"><div class="kpi-name">Cost variance</div><div class="kpi-val">+2.1%</div></div>
+        <div class="kpi-item"><div class="kpi-name">Test pass rate</div><div class="kpi-val">89%</div></div>
+        <div class="kpi-item"><div class="kpi-name">Open defects (P1/P2)</div><div class="kpi-val">6</div></div>
+        <div class="kpi-item"><div class="kpi-name">Scope changes (quarter)</div><div class="kpi-val">2</div></div>
+        <div class="kpi-item"><div class="kpi-name">Milestone hit rate</div><div class="kpi-val">73%</div></div>
+      </div>
+
+      <div class="kpi-level" data-level="program">
+        <div class="kpi-item"><div class="kpi-name">Workstreams on track</div><div class="kpi-val">4 / 6</div></div>
+        <div class="kpi-item"><div class="kpi-name">Cross-team dependencies</div><div class="kpi-val">11 tracked</div></div>
+        <div class="kpi-item"><div class="kpi-name">Budget utilization</div><div class="kpi-val">71%</div></div>
+        <div class="kpi-item"><div class="kpi-name">Benefit realization</div><div class="kpi-val">58%</div></div>
+        <div class="kpi-item"><div class="kpi-name">Risk exposure (weighted)</div><div class="kpi-val">Medium</div></div>
+        <div class="kpi-item"><div class="kpi-name">Stakeholder satisfaction</div><div class="kpi-val">4.1 / 5</div></div>
+      </div>
+
+      <div class="kpi-level" data-level="portfolio">
+        <div class="kpi-item"><div class="kpi-name">Active initiatives</div><div class="kpi-val">9</div></div>
+        <div class="kpi-item"><div class="kpi-name">Portfolio budget health</div><div class="kpi-val">On plan</div></div>
+        <div class="kpi-item"><div class="kpi-name">Strategic alignment score</div><div class="kpi-val">82%</div></div>
+        <div class="kpi-item"><div class="kpi-name">Value delivered (YTD)</div><div class="kpi-val">$4.2M</div></div>
+        <div class="kpi-item"><div class="kpi-name">Initiatives at risk</div><div class="kpi-val">2</div></div>
+        <div class="kpi-item"><div class="kpi-name">Time-to-value (avg)</div><div class="kpi-val">5.4 months</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© <span id="year"></span> AexForge</span>
+  <span>Built for Confidence</span>
+</footer>
+
+<script>
+/* ==========================================================
+   AexForge — simple client-side access gate
+   ----------------------------------------------------------
+   NOTE FOR THE SITE OWNER:
+   This is a soft deterrent, not real security. GitHub Pages only
+   serves static files — anyone who views page source or the
+   Network tab can read this password and the gated markup. Use
+   this to keep casual visitors out of work-in-progress pages,
+   not to protect anything sensitive.
+
+   To change the password: edit GATE_PASSWORD below.
+   To gate a new page: include site.css + this file, wrap the
+   protected markup in <div class="gated-content" id="gated-content">,
+   and add the gate screen markup (copy from projects.html or
+   dashboard.html) right before it.
+   ========================================================== */
+(function () {
+  const GATE_PASSWORD = "aexforge2026"; // change this
+  const STORAGE_KEY = "aexforge_gate_unlocked";
+
+  function unlock() {
+    const gate = document.getElementById("gate-screen");
+    const content = document.getElementById("gated-content");
+    if (gate) gate.style.display = "none";
+    if (content) content.classList.add("is-unlocked");
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (sessionStorage.getItem(STORAGE_KEY) === "true") {
+      unlock();
+      return;
+    }
+
+    const form = document.getElementById("gate-form");
+    const input = document.getElementById("gate-password");
+    const error = document.getElementById("gate-error");
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (input.value === GATE_PASSWORD) {
+        sessionStorage.setItem(STORAGE_KEY, "true");
+        error.textContent = "";
+        unlock();
+      } else {
+        error.textContent = "That password isn't right — try again.";
+        input.value = "";
+        input.focus();
+      }
+    });
+  });
+})();
+
+</script>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  document.querySelectorAll('.kpi-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const level = tab.dataset.level;
+      document.querySelectorAll('.kpi-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.kpi-level').forEach(l => l.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.kpi-level[data-level="${level}"]`).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

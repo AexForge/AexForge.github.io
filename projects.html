@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — AexForge</title>
+<meta name="description" content="Featured agentic AI and delivery-leadership projects from AexForge.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   AexForge — shared design tokens & components
+   Used by: index.html, about.html, projects.html, dashboard.html,
+   and everything under /tools/
+   ========================================================== */
+
+:root{
+  --bg:            #F5F6F3;
+  --surface:       #FFFFFF;
+  --surface-hover: #FCFAF6;
+  --border:        #E1E4DF;
+  --text:          #1B2430;
+  --text-soft:     #5B6472;
+  --text-faint:    #8A9099;
+  --forge:         #2E5077;
+  --forge-dark:    #1F3A57;
+  --ember:         #B2542D;
+  --ember-soft:    #F1E2D6;
+  --ok:            #3D7A5C;
+  --warn:          #A6741C;
+  --danger:        #B23A3A;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --maxw: 1080px;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::selection{ background: var(--ember-soft); color: var(--ember); }
+
+a{ color: inherit; text-decoration: none; }
+img{ max-width:100%; display:block; }
+
+.wrap{
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+h1,h2,h3{
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--forge);
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin: 0 0 14px 0;
+}
+.eyebrow::before{
+  content:"";
+  width: 22px;
+  height: 1px;
+  background: var(--forge);
+  display:inline-block;
+}
+
+/* ---------- Header / nav ---------- */
+header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(245,246,243,0.86);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 18px 0;
+}
+.wordmark{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.wordmark span{ color: var(--ember); }
+.navlinks{
+  display:flex;
+  gap: 28px;
+  font-size: 14.5px;
+  color: var(--text-soft);
+}
+.navlinks a{ transition: color .15s ease; }
+.navlinks a:hover, .navlinks a:focus-visible{ color: var(--forge); }
+.navlinks a.active{ color: var(--forge-dark); font-weight: 600; }
+.nav-cta{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid var(--forge-dark);
+  border-radius: 6px;
+  color: var(--forge-dark);
+  transition: background .15s ease, color .15s ease;
+}
+.nav-cta:hover, .nav-cta:focus-visible{
+  background: var(--forge-dark);
+  color: #fff;
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  padding: 12px 20px;
+  border-radius: 7px;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn-primary{
+  background: var(--forge-dark);
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus-visible{
+  background: var(--forge);
+  box-shadow: 0 6px 18px rgba(31,58,87,0.25);
+  transform: translateY(-1px);
+}
+.btn-ghost{
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+.btn-ghost:hover, .btn-ghost:focus-visible{
+  border-color: var(--forge);
+  color: var(--forge);
+}
+
+/* ---------- Section shell ---------- */
+section{ padding: 64px 0; }
+.section-head{ margin-bottom: 34px; }
+.section-head h2{ font-size: 26px; }
+.page-hero{ padding: 56px 0 8px; }
+.page-hero p.lede{
+  margin: 16px 0 0;
+  font-size: 16.5px;
+  color: var(--text-soft);
+  max-width: 62ch;
+}
+
+/* ---------- About-style focus list ---------- */
+.focus-list{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+.focus-list li{
+  display:flex;
+  gap: 12px;
+  align-items:flex-start;
+  font-size: 14.5px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.focus-list li .dot{
+  width: 6px; height:6px; border-radius:50%;
+  background: var(--ember);
+  margin-top: 7px;
+  flex-shrink:0;
+}
+
+/* ---------- Skills ---------- */
+.skill-group{ margin-bottom: 22px; }
+.skill-group h3{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.pill-row{ display:flex; flex-wrap:wrap; gap: 9px; }
+.pill{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.skill-columns{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.skill-columns .column-label{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--forge);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---------- Projects ---------- */
+.project-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.project-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.project-card:hover{
+  border-color: var(--forge);
+  transform: translateY(-2px);
+}
+.project-card h3{ font-size: 17px; }
+.project-card p{
+  color: var(--text-soft);
+  font-size: 14px;
+  margin: 0;
+  flex-grow: 1;
+}
+.project-tags{ display:flex; flex-wrap:wrap; gap: 6px; margin-top: 4px; }
+.tag-sm{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ember-soft);
+  color: var(--ember);
+}
+.project-links{
+  display:flex; gap: 14px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.project-links a{ color: var(--forge); }
+.project-links a:hover{ text-decoration: underline; }
+
+.repo-note{
+  font-size: 13.5px;
+  color: var(--text-faint);
+  margin-top: -18px;
+  margin-bottom: 26px;
+}
+#repo-status{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-faint);
+  padding: 20px 0;
+}
+#repo-status.is-error{ color: var(--ember); }
+
+/* ---------- Contact ---------- */
+#contact{
+  background: var(--forge-dark);
+  color: #EFF3F6;
+  border-radius: 20px;
+  margin: 30px 0 70px;
+  padding: 56px 44px;
+}
+#contact h2{ color: #fff; font-size: 28px; }
+#contact p{ color: #C7D3DD; max-width: 52ch; margin: 14px 0 26px; font-size: 15.5px; }
+#contact .btn-primary{ background: var(--ember); }
+#contact .btn-primary:hover{
+  background: #c66435;
+  box-shadow: 0 6px 18px rgba(178,84,45,0.35);
+}
+#contact .btn-ghost{
+  background: transparent;
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+}
+#contact .btn-ghost:hover{ border-color: #fff; }
+
+footer{
+  padding: 30px 0 50px;
+  font-size: 13px;
+  color: var(--text-faint);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap: 10px;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+  outline: 2px solid var(--forge);
+  outline-offset: 2px;
+}
+
+/* ---------- Access gate (used by projects.html & dashboard.html) ---------- */
+.gate-screen{
+  min-height: 60vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 60px 28px;
+}
+.gate-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 40px -28px rgba(27,36,48,0.35);
+}
+.gate-card h2{ font-size: 21px; margin-bottom: 8px; }
+.gate-card p{ color: var(--text-soft); font-size: 14px; margin: 0 0 20px; }
+.gate-form{ display:flex; flex-direction:column; gap: 12px; }
+.gate-form input[type="password"]{
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+}
+.gate-error{
+  font-size: 13px;
+  color: var(--danger);
+  min-height: 18px;
+}
+.gated-content{ display:none; }
+.gated-content.is-unlocked{ display:block; }
+
+/* ---------- Generic form fields (case-study tool pages) ---------- */
+.field-label{
+  display:block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+textarea.tool-input, input.tool-input{
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+  /* Intentionally no maxlength attribute anywhere and no CSS text-overflow/line-clamp
+     applied to inputs — see note in tools/README. */
+}
+
+@media (max-width: 820px){
+  .navlinks{ display:none; }
+  .project-grid{ grid-template-columns: 1fr; }
+  .skill-columns{ grid-template-columns: 1fr; }
+  #contact{ padding: 40px 24px; }
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="wordmark" href="index.html">Aex<span>Forge</span></a>
+    <nav class="navlinks">
+      <a href="about.html">About</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="projects.html" class="active">Projects</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="nav-cta" href="https://github.com/AexForge" target="_blank" rel="noopener">github.com/AexForge</a>
+  </div>
+</header>
+
+<!-- ACCESS GATE -->
+<div class="gate-screen" id="gate-screen">
+  <div class="wrap" style="padding:0; display:flex; justify-content:center;">
+    <div class="gate-card">
+      <p class="eyebrow">Access required</p>
+      <h2>Projects are password-protected</h2>
+      <p>This page has restricted access. Enter the password to view featured work and live repositories.</p>
+      <form class="gate-form" id="gate-form">
+        <input type="password" id="gate-password" placeholder="Password" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary">Unlock</button>
+        <p class="gate-error" id="gate-error"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<main class="gated-content" id="gated-content">
+  <section class="page-hero wrap">
+    <p class="eyebrow">Projects</p>
+    <h1 style="font-size:clamp(30px,4vw,42px); line-height:1.15;">Featured work</h1>
+    <p class="lede">Agentic AI tools and delivery-leadership frameworks — hand-picked below, plus everything live on GitHub.</p>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="project-grid" id="featured-grid"></div>
+
+      <div style="margin-top:46px;" class="section-head">
+        <p class="eyebrow">Live from GitHub</p>
+        <h2>Latest repositories</h2>
+      </div>
+      <p class="repo-note">Pulled directly from github.com/AexForge — updates automatically as new repos are pushed.</p>
+      <div class="project-grid" id="repo-grid"></div>
+      <p id="repo-status">Loading repositories…</p>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div id="contact">
+      <p class="eyebrow" style="color:#8FB2D6;">Contact</p>
+      <h2>Let's talk about agents.</h2>
+      <p>Open to conversations about agentic AI systems, Anthropic tooling, and applied LLM engineering — reach out directly or find the code on GitHub.</p>
+      <div class="hero-actions" style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="mailto:hello@example.com">Email me</a>
+        <a class="btn btn-ghost" href="https://github.com/AexForge" target="_blank" rel="noopener">GitHub profile</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© <span id="year"></span> AexForge</span>
+  <span>Built for Confidence</span>
+</footer>
+
+<script>
+/* ==========================================================
+   AexForge — simple client-side access gate
+   ----------------------------------------------------------
+   NOTE FOR THE SITE OWNER:
+   This is a soft deterrent, not real security. GitHub Pages only
+   serves static files — anyone who views page source or the
+   Network tab can read this password and the gated markup. Use
+   this to keep casual visitors out of work-in-progress pages,
+   not to protect anything sensitive.
+
+   To change the password: edit GATE_PASSWORD below.
+   To gate a new page: include site.css + this file, wrap the
+   protected markup in <div class="gated-content" id="gated-content">,
+   and add the gate screen markup (copy from projects.html or
+   dashboard.html) right before it.
+   ========================================================== */
+(function () {
+  const GATE_PASSWORD = "aexforge2026"; // change this
+  const STORAGE_KEY = "aexforge_gate_unlocked";
+
+  function unlock() {
+    const gate = document.getElementById("gate-screen");
+    const content = document.getElementById("gated-content");
+    if (gate) gate.style.display = "none";
+    if (content) content.classList.add("is-unlocked");
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (sessionStorage.getItem(STORAGE_KEY) === "true") {
+      unlock();
+      return;
+    }
+
+    const form = document.getElementById("gate-form");
+    const input = document.getElementById("gate-password");
+    const error = document.getElementById("gate-error");
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (input.value === GATE_PASSWORD) {
+        sessionStorage.setItem(STORAGE_KEY, "true");
+        error.textContent = "";
+        unlock();
+      } else {
+        error.textContent = "That password isn't right — try again.";
+        input.value = "";
+        input.focus();
+      }
+    });
+  });
+})();
+
+</script>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // ---------------------------------------------------------------
+  // FEATURED PROJECTS — hand-picked, manually maintained.
+  // Add your own entries here. Each one renders as a card above
+  // the live GitHub feed. Leave the array empty to hide the section.
+  // ---------------------------------------------------------------
+  const featuredProjects = [
+    {
+      title: "RFP Requirement Extractor",
+      description: "Deterministically pulls requirement sentences out of raw RFP text and flags Mandatory vs. Optional by language — with an optional AI layer to draft response bullets against your own capability summary.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/rfp-extractor.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "SLA Breach Risk Digest",
+      description: "Paste a ticket export and get deterministic SLA risk flags — At Risk / Breached / OK — computed with plain math, not AI. An optional AI layer writes a one-line summary for anything flagged.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/sla-digest.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Executive Status Report Generator",
+      description: "Turns messy project notes into a RAG-status executive update. Status classification is rule-based; an optional AI layer polishes the notes into CxO-ready prose.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/status-report.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Team Skill-Gap & Coaching Planner",
+      description: "Deterministic set-difference between a team member's current skills and a target role profile, with an optional AI layer that turns each gap list into a short coaching recommendation.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/skill-gap.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Compliance Checklist Auditor",
+      description: "Keyword-matched baseline scoring against a compliance checklist, with an optional AI layer for real classification and a one-line justification per item.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/compliance-auditor.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Project Plan",
+      description: "Structured planning framework covering scope, milestones, dependencies, and resourcing — built to keep an AI-enabled delivery workstream on a single source of truth.",
+      tags: ["Delivery Leadership", "Planning"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Enterprise Architecture",
+      description: "Reference architecture for embedding agentic AI capability into existing enterprise systems — integration points, data flow, and governance boundaries.",
+      tags: ["Enterprise Architecture", "Governance"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Executive Dashboard",
+      description: "Executive leadership summary, test-delivery tracking, risk register, stakeholder reporting cadence, data-driven decision views, and Project / Program / Portfolio KPI roll-ups — in one place.",
+      tags: ["Delivery Leadership", "Reporting", "KPIs"],
+      caseStudy: "dashboard.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Program Execution",
+      description: "Operating model for running multi-workstream programs — cadence, dependency management, and escalation paths for AI-enabled delivery at program scale.",
+      tags: ["Delivery Leadership", "Program Management"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Intelligent Automation",
+      description: "Scalable governance models for intelligent automation — designed so agentic tools can be adopted broadly without losing control, auditability, or accountability.",
+      tags: ["Agentic AI", "Governance"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Enterprise Delivery Initiatives",
+      description: "Portfolio of delivery initiatives applying agentic AI patterns across the enterprise, tracked from pilot through scaled rollout.",
+      tags: ["Delivery Leadership", "Portfolio"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Bridge Strategy & Execution",
+      description: "Translation layer between business strategy and delivery execution — turning strategic intent into a tracked, measurable delivery plan.",
+      tags: ["Strategy", "Delivery Leadership"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Common Data Framework",
+      description: "Shared data model and standards that let agentic tools, dashboards, and reporting all draw from one consistent source of truth.",
+      tags: ["Enterprise Architecture", "Data Governance"],
+      caseStudy: null,
+      repo: null,
+      demo: null
+    }
+    // Add more hand-picked projects here, or delete any of these.
+  ];
+
+  const featuredGrid = document.getElementById('featured-grid');
+  if (featuredProjects.length === 0) {
+    featuredGrid.closest('section').querySelector('.section-head').style.display = 'none';
+    featuredGrid.style.display = 'none';
+  } else {
+    featuredProjects.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        <h3>${p.title}</h3>
+        <p>${p.description}</p>
+        <div class="project-tags">${p.tags.map(t => `<span class="tag-sm">${t}</span>`).join('')}</div>
+        <div class="project-links">
+          ${p.caseStudy ? `<a href="${p.caseStudy}">Case study →</a>` : ''}
+          ${p.repo ? `<a href="${p.repo}" target="_blank" rel="noopener">Repo →</a>` : ''}
+          ${p.demo ? `<a href="${p.demo}" target="_blank" rel="noopener">Live demo →</a>` : ''}
+        </div>
+      `;
+      featuredGrid.appendChild(card);
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // LIVE GITHUB REPOS — auto-pulled from the GitHub API.
+  // ---------------------------------------------------------------
+  const GITHUB_USERNAME = 'AexForge';
+  const repoGrid = document.getElementById('repo-grid');
+  const repoStatus = document.getElementById('repo-status');
+
+  async function loadRepos() {
+    try {
+      const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6`);
+      if (!res.ok) throw new Error(`GitHub API responded with ${res.status}`);
+      const repos = await res.json();
+
+      if (!Array.isArray(repos) || repos.length === 0) {
+        repoStatus.textContent = 'No public repositories yet — check back soon.';
+        return;
+      }
+
+      repoStatus.style.display = 'none';
+      repos
+        .filter(r => !r.fork)
+        .forEach(r => {
+          const card = document.createElement('div');
+          card.className = 'project-card';
+          card.innerHTML = `
+            <h3>${r.name}</h3>
+            <p>${r.description ? r.description : 'No description provided yet.'}</p>
+            <div class="project-tags">${r.language ? `<span class="tag-sm">${r.language}</span>` : ''}${r.stargazers_count > 0 ? `<span class="tag-sm">★ ${r.stargazers_count}</span>` : ''}</div>
+            <div class="project-links">
+              <a href="${r.html_url}" target="_blank" rel="noopener">Repo →</a>
+              ${r.homepage ? `<a href="${r.homepage}" target="_blank" rel="noopener">Live →</a>` : ''}
+            </div>
+          `;
+          repoGrid.appendChild(card);
+        });
+    } catch (err) {
+      repoStatus.textContent = 'Could not load repositories right now — visit the GitHub profile directly.';
+      repoStatus.classList.add('is-error');
+    }
+  }
+
+  loadRepos();
+</script>
+
+</body>
+</html>
