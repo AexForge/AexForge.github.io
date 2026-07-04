@@ -6,9 +6,6 @@ Plain HTML/CSS/JS — no build step, no dependencies to install.
 ## What's inside
 
 - `index.html` — the main site (structure, styles, and behavior in one file)
-- `career-os.html` — a detailed case-study page for the "AI Career Operating
-  System" project (Dify + Groq + Google Workspace architecture), linked from
-  the featured project card on the homepage
 - Live GitHub repo feed (pulls automatically from `github.com/AexForge`)
 - A `featuredProjects` array (inside the `<script>` at the bottom of `index.html`)
   for hand-picking specific projects with your own description — add a
