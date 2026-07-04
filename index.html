@@ -99,7 +99,7 @@
     font-size: 18px;
     letter-spacing: -0.01em;
   }
-  .wordmark span{ color: var(--ember); }
+.wordmark span{ color: var(--ember); }
   .navlinks{
     display:flex;
     gap: 28px;
@@ -586,7 +586,7 @@
       <h2>Let's talk about agents.</h2>
       <p>Open to conversations about agentic AI systems, Anthropic tooling, and applied LLM engineering — reach out directly or find the code on GitHub.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="mailto:poornisidhu@gmail.com">Email me</a>
+        <a class="btn btn-primary" href="mailto:hello@example.com">Email me</a>
         <a class="btn btn-ghost" href="https://github.com/AexForge" target="_blank" rel="noopener">GitHub profile</a>
       </div>
     </div>
@@ -607,14 +607,47 @@
   // the live GitHub feed. Leave the array empty to hide the section.
   // ---------------------------------------------------------------
   const featuredProjects = [
-    // Example — replace with a real project, or delete:
-    // {
-    //   title: "Agent Ops Toolkit",
-    //   description: "A set of MCP tools for monitoring and replaying multi-step Claude agent runs.",
-    //   tags: ["MCP", "Claude", "Python"],
-    //   repo: "https://github.com/AexForge/agent-ops-toolkit",
-    //   demo: null
-    // }
+    {
+      title: "RFP Requirement Extractor",
+      description: "Deterministically pulls requirement sentences out of raw RFP text and flags Mandatory vs. Optional by language — with an optional AI layer to draft response bullets against your own capability summary.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/rfp-extractor.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "SLA Breach Risk Digest",
+      description: "Paste a ticket export and get deterministic SLA risk flags — At Risk / Breached / OK — computed with plain math, not AI. An optional AI layer writes a one-line summary for anything flagged.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/sla-digest.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Executive Status Report Generator",
+      description: "Turns messy project notes into a RAG-status executive update. Status classification is rule-based; an optional AI layer polishes the notes into CxO-ready prose.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/status-report.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Team Skill-Gap & Coaching Planner",
+      description: "Deterministic set-difference between a team member's current skills and a target role profile, with an optional AI layer that turns each gap list into a short coaching recommendation.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/skill-gap.html",
+      repo: null,
+      demo: null
+    },
+    {
+      title: "Compliance Checklist Auditor",
+      description: "Keyword-matched baseline scoring against a compliance checklist, with an optional AI layer for real classification and a one-line justification per item.",
+      tags: ["Agentic AI", "Groq", "Deterministic Logic"],
+      caseStudy: "tools/compliance-auditor.html",
+      repo: null,
+      demo: null
+    }
+    // Add more hand-picked projects here, or delete any of these.
   ];
 
   const featuredGrid = document.getElementById('featured-grid');
@@ -630,11 +663,10 @@
         <p>${p.description}</p>
         <div class="project-tags">${p.tags.map(t => `<span class="tag-sm">${t}</span>`).join('')}</div>
         <div class="project-links">
+          ${p.caseStudy ? `<a href="${p.caseStudy}">Case study →</a>` : ''}
           ${p.repo ? `<a href="${p.repo}" target="_blank" rel="noopener">Repo →</a>` : ''}
           ${p.demo ? `<a href="${p.demo}" target="_blank" rel="noopener">Live demo →</a>` : ''}
         </div>
-      `;
-      featuredGrid.appendChild(card);
     });
   }
 
