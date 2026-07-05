@@ -105,19 +105,21 @@
   <section>
     <div class="card">
       <div class="field">
-        <label>Tasks — one per line: program, id, name, duration_days, dependencies (semicolon-separated ids, optional)</label>
-        <textarea id="taskInput" rows="10" placeholder="Platform Modernization, A, Requirements, 5,
-Platform Modernization, B, Design, 8, A
-Platform Modernization, C, Development, 15, B
-Platform Modernization, D, Testing, 6, C
-Platform Modernization, E, Documentation, 4, B
-Platform Modernization, F, Deployment, 3, D;E
-Data Migration, G, Extract, 4,
-Data Migration, H, Transform, 6, G
-Data Migration, I, Load & Validate, 3, H"></textarea>
-        <p class="hint">Day 0 is the program start. Dependencies reference the id column, separated by semicolons.</p>
+        <label>Tasks &mdash; one per line: id, name, duration_days, dependencies (optional). Add a program name in front if tracking more than one program.</label>
+        <textarea id="taskInput" rows="10" placeholder="A, Requirements, 5,
+B, Design, 8, A
+C, Development, 15, B
+D, Testing, 6, C
+E, Documentation, 4, B
+F, Deployment, 3, D;E"></textarea>
+        <p class="hint">
+          Simple (one program): <code>id, name, duration, dependencies</code> &mdash; e.g. <code>B, Design, 8, A</code>.<br>
+          Multi-program: add a program name in front &mdash; <code>program, id, name, duration, dependencies</code> &mdash; e.g. <code>Data Migration, G, Extract, 4,</code>.<br>
+          Dependencies reference the id column, separated by semicolons. Leave blank (trailing comma) if a task has none.
+        </p>
       </div>
-      <button class="btn btn-primary" onclick="runTracker()">Build Gantt & find critical path →</button>
+      <button class="btn btn-primary" onclick="runTracker()">Build Gantt & find critical path &rarr;</button>
+      <div id="parseErrors" style="margin-top:10px;"></div>
     </div>
 
     <div class="card" id="resultsCard" style="display:none;">
@@ -152,20 +154,52 @@ Data Migration, I, Load & Validate, 3, H"></textarea>
 
   function parseTasks(raw){
     const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-    const rows = lines.map(line => {
+    const errors = [];
+    const rows = [];
+
+    lines.forEach((line, idx) => {
       const parts = line.split(',').map(p => p.trim());
-      const [program, id, name, durationStr, depsStr] = parts;
+      let program, id, name, durationStr, depsStr;
+
+      // Flexible column detection — the "program" column is optional.
+      // 5+ fields: program, id, name, duration, deps
+      // 4 fields:  id, name, duration, deps   (single default program)
+      // 3 fields:  id, name, duration          (no dependencies)
+      if (parts.length >= 5){
+        [program, id, name, durationStr, depsStr] = parts;
+      } else if (parts.length === 4){
+        program = 'Default Program';
+        [id, name, durationStr, depsStr] = parts;
+      } else if (parts.length === 3){
+        program = 'Default Program';
+        [id, name, durationStr] = parts;
+        depsStr = '';
+      } else {
+        errors.push(`Line ${idx + 1}: expected at least "id, name, duration" — got ${parts.length} field(s).`);
+        return;
+      }
+
       const duration = parseFloat(durationStr);
       const deps = (depsStr || '').split(';').map(d => d.trim()).filter(Boolean);
-      return { program, id, name, duration, deps };
-    }).filter(t => t.program && t.id && t.name && !isNaN(t.duration));
+
+      if (!id || !name){
+        errors.push(`Line ${idx + 1}: missing id or name.`);
+        return;
+      }
+      if (isNaN(duration)){
+        errors.push(`Line ${idx + 1}: duration "${durationStr}" isn't a number.`);
+        return;
+      }
+
+      rows.push({ program, id, name, duration, deps });
+    });
 
     const byProgram = {};
     rows.forEach(t => {
       if (!byProgram[t.program]) byProgram[t.program] = [];
       byProgram[t.program].push(t);
     });
-    return byProgram;
+    return { byProgram, errors };
   }
 
   // Deterministic Critical Path Method — forward pass, backward pass, float.
@@ -205,7 +239,36 @@ Data Migration, I, Load & Validate, 3, H"></textarea>
 
   function runTracker(){
     const raw = document.getElementById('taskInput').value;
-    const byProgram = parseTasks(raw);
+    const errorBox = document.getElementById('parseErrors');
+    const resultsCard = document.getElementById('resultsCard');
+
+    if (!raw.trim()){
+      errorBox.innerHTML = `<p class="hint" style="color:var(--danger);">Paste at least one task line first.</p>`;
+      resultsCard.style.display = 'none';
+      return;
+    }
+
+    const { byProgram, errors } = parseTasks(raw);
+    const programCount = Object.keys(byProgram).length;
+
+    if (programCount === 0){
+      errorBox.innerHTML = `
+        <p class="hint" style="color:var(--danger); margin-bottom:6px;">
+          No valid task rows found — nothing to build. Check the format below:
+        </p>
+        <ul style="font-size:12.5px; color:var(--danger); margin:0 0 8px; padding-left:18px;">
+          ${errors.map(e => `<li>${e}</li>`).join('')}
+        </ul>
+        <p class="hint">Expected: <code>id, name, duration</code> at minimum, or <code>program, id, name, duration, dependencies</code> for multi-program input.</p>
+      `;
+      resultsCard.style.display = 'none';
+      return;
+    }
+
+    errorBox.innerHTML = errors.length
+      ? `<p class="hint" style="color:var(--warn);">${errors.length} row(s) were skipped: ${errors.join(' ')}</p>`
+      : '';
+
     programResults = {};
     Object.keys(byProgram).forEach(program => {
       programResults[program] = computeCPM(byProgram[program]);
