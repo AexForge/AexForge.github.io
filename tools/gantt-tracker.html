@@ -79,6 +79,14 @@
   .summary-stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
   .stat-chip{font-family:var(--font-mono);font-size:12.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface-hover);color:var(--text);}
   .stat-chip strong{color:var(--forge-dark);}
+
+  /* ---- Combined view additions ---- */
+  .program-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px;flex-shrink:0;}
+  .resource-tag{font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:999px;background:var(--surface-hover);color:var(--text-soft);border:1px solid var(--border);margin-left:6px;white-space:nowrap;}
+  .gantt-bar.critical-border{box-shadow:inset 0 0 0 2px var(--ember);}
+  .gantt-bar.slack-tail{opacity:.32;border:1px dashed rgba(27,36,48,.35);}
+  .conflict-card{border:1px solid var(--danger-soft);background:var(--danger-soft);border-radius:10px;padding:14px 16px;margin-top:16px;font-size:13px;color:var(--danger);}
+  .conflict-card div{margin-top:4px;}
 </style>
 </head>
 <body>
@@ -97,25 +105,34 @@
     <p class="lede">
       Paste tasks across one or more programs. Schedule dates, float, and the
       critical path are computed deterministically with the Critical Path
-      Method (CPM) — no AI involved in the math — with an optional AI layer
-      to narrate which programs carry the most schedule risk.
+      Method (CPM) — no AI involved in the math. See each program on its own,
+      or switch to the combined view to compare all programs side by side,
+      color-coded, with slack (float) and resource assignments visible at a
+      glance — plus an optional AI layer to narrate which programs carry the
+      most schedule risk.
     </p>
   </section>
 
   <section>
     <div class="card">
       <div class="field">
-        <label>Tasks &mdash; one per line: id, name, duration_days, dependencies (optional). Add a program name in front if tracking more than one program.</label>
-        <textarea id="taskInput" rows="10" placeholder="A, Requirements, 5,
-B, Design, 8, A
-C, Development, 15, B
-D, Testing, 6, C
-E, Documentation, 4, B
-F, Deployment, 3, D;E"></textarea>
+        <label>Tasks &mdash; one per line: id, name, duration_days, dependencies (optional). Add program and/or resource columns as needed.</label>
+        <textarea id="taskInput" rows="10" placeholder="Program C, C1, Requirements, 6, , Asha
+Program C, C2, Design, 9, C1, Ravi
+Program C, C3, Development, 14, C2, Ravi
+Program C, C4, System Testing, 8, C3, Meera
+Program C, C5, UAT & Deployment, 5, C4, Asha
+
+Program D, D1, Requirements, 5, , Asha
+Program D, D2, Design, 6, D1, Ravi
+Program D, D3, Development, 16, D2, Ravi
+Program D, D4, System Testing, 7, D3, Meera
+Program D, D5, UAT & Deployment, 4, D4, Asha"></textarea>
         <p class="hint">
-          Simple (one program): <code>id, name, duration, dependencies</code> &mdash; e.g. <code>B, Design, 8, A</code>.<br>
-          Multi-program: add a program name in front &mdash; <code>program, id, name, duration, dependencies</code> &mdash; e.g. <code>Data Migration, G, Extract, 4,</code>.<br>
-          Dependencies reference the id column, separated by semicolons. Leave blank (trailing comma) if a task has none.
+          Simple (one program, no resource): <code>id, name, duration, dependencies</code> &mdash; e.g. <code>B, Design, 8, A</code>.<br>
+          Multi-program: <code>program, id, name, duration, dependencies</code> &mdash; e.g. <code>Data Migration, G, Extract, 4,</code>.<br>
+          With a resource assigned: add it as a 6th field &mdash; <code>program, id, name, duration, dependencies, resource</code> &mdash; e.g. <code>Program C, C2, Design, 9, C1, Ravi</code>.<br>
+          Dependencies reference the id column, separated by semicolons. Leave a field blank (just the comma) if it doesn't apply.
         </p>
       </div>
       <button class="btn btn-primary" onclick="runTracker()">Build Gantt & find critical path &rarr;</button>
@@ -159,21 +176,27 @@ F, Deployment, 3, D;E"></textarea>
 
     lines.forEach((line, idx) => {
       const parts = line.split(',').map(p => p.trim());
-      let program, id, name, durationStr, depsStr;
+      let program, id, name, durationStr, depsStr, resource;
 
-      // Flexible column detection — the "program" column is optional.
-      // 5+ fields: program, id, name, duration, deps
-      // 4 fields:  id, name, duration, deps   (single default program)
-      // 3 fields:  id, name, duration          (no dependencies)
-      if (parts.length >= 5){
+      // Flexible column detection — "program" and "resource" are both optional.
+      // 6 fields: program, id, name, duration, deps, resource
+      // 5 fields: program, id, name, duration, deps
+      // 4 fields: id, name, duration, deps        (single default program)
+      // 3 fields: id, name, duration                (no dependencies)
+      if (parts.length >= 6){
+        [program, id, name, durationStr, depsStr, resource] = parts;
+      } else if (parts.length === 5){
         [program, id, name, durationStr, depsStr] = parts;
+        resource = '';
       } else if (parts.length === 4){
         program = 'Default Program';
         [id, name, durationStr, depsStr] = parts;
+        resource = '';
       } else if (parts.length === 3){
         program = 'Default Program';
         [id, name, durationStr] = parts;
         depsStr = '';
+        resource = '';
       } else {
         errors.push(`Line ${idx + 1}: expected at least "id, name, duration" — got ${parts.length} field(s).`);
         return;
@@ -191,7 +214,7 @@ F, Deployment, 3, D;E"></textarea>
         return;
       }
 
-      rows.push({ program, id, name, duration, deps });
+      rows.push({ program, id, name, duration, deps, resource: (resource || '').trim() });
     });
 
     const byProgram = {};
@@ -280,12 +303,21 @@ F, Deployment, 3, D;E"></textarea>
     const programs = Object.keys(programResults);
     const tabsEl = document.getElementById('programTabs');
     const panelsEl = document.getElementById('programPanels');
+    const showCombined = programs.length > 1;
 
-    tabsEl.innerHTML = programs.map((p, i) =>
-      `<button class="program-tab${i === 0 ? ' active' : ''}" data-program="${escapeAttr(p)}">${p}</button>`
+    let tabsHtml = '';
+    if (showCombined){
+      tabsHtml += `<button class="program-tab active" data-program="__combined__">All Programs (Combined)</button>`;
+    }
+    tabsHtml += programs.map((p, i) =>
+      `<button class="program-tab${!showCombined && i === 0 ? ' active' : ''}" data-program="${escapeAttr(p)}">${p}</button>`
     ).join('');
+    tabsEl.innerHTML = tabsHtml;
 
-    panelsEl.innerHTML = programs.map((program, i) => {
+    let panelsHtml = '';
+    if (showCombined) panelsHtml += renderCombinedPanel(programs);
+
+    panelsHtml += programs.map((program, i) => {
       const tasks = programResults[program];
       const projectEnd = Math.max(...tasks.map(t => t.ef));
       const criticalCount = tasks.filter(t => t.critical).length;
@@ -293,7 +325,7 @@ F, Deployment, 3, D;E"></textarea>
 
       const rows = tasks.map(t => `
         <div class="gantt-row">
-          <div class="gantt-label"><span class="id-tag">${t.id}</span>${t.name}</div>
+          <div class="gantt-label"><span class="id-tag">${t.id}</span>${t.name}${t.resource ? `<span class="resource-tag">${t.resource}</span>` : ''}</div>
           <div class="gantt-track">
             <div class="gantt-bar${t.critical ? ' critical' : ''}" style="left:${t.es * scale}px; width:${Math.max(t.duration * scale, 4)}px;">
               <span class="bar-label">${t.duration}d</span>
@@ -306,6 +338,7 @@ F, Deployment, 3, D;E"></textarea>
         <tr>
           <td>${t.id}</td>
           <td>${t.name}</td>
+          <td>${t.resource || '<span class="hint">—</span>'}</td>
           <td>${t.duration}</td>
           <td>${t.es}</td>
           <td>${t.ef}</td>
@@ -317,7 +350,7 @@ F, Deployment, 3, D;E"></textarea>
       `).join('');
 
       return `
-        <div class="program-panel${i === 0 ? ' active' : ''}" data-program="${escapeAttr(program)}">
+        <div class="program-panel${!showCombined && i === 0 ? ' active' : ''}" data-program="${escapeAttr(program)}">
           <div class="summary-stats">
             <span class="stat-chip">Program length: <strong>${projectEnd}d</strong></span>
             <span class="stat-chip">Tasks: <strong>${tasks.length}</strong></span>
@@ -331,12 +364,14 @@ F, Deployment, 3, D;E"></textarea>
             <span><span class="swatch" style="background:var(--forge);"></span>Has float / slack</span>
           </div>
           <table style="margin-top:22px;">
-            <thead><tr><th>ID</th><th>Task</th><th>Dur</th><th>ES</th><th>EF</th><th>LS</th><th>LF</th><th>Float</th><th>Status</th></tr></thead>
+            <thead><tr><th>ID</th><th>Task</th><th>Resource</th><th>Dur</th><th>ES</th><th>EF</th><th>LS</th><th>LF</th><th>Float</th><th>Status</th></tr></thead>
             <tbody>${tableRows}</tbody>
           </table>
         </div>
       `;
     }).join('');
+
+    panelsEl.innerHTML = panelsHtml;
 
     document.querySelectorAll('.program-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -354,6 +389,94 @@ F, Deployment, 3, D;E"></textarea>
 
   function escapeAttr(s){ return String(s).replace(/"/g, '&quot;'); }
   function cssEscape(s){ return String(s).replace(/"/g, '\\"'); }
+
+  const PROGRAM_PALETTE = ['#2E5077','#B2542D','#3D7A5C','#6B4C9A','#A6741C','#2D8FA6','#8A3D6B','#5C7A2E'];
+  function colorForProgram(programs, program){
+    const idx = programs.indexOf(program);
+    return PROGRAM_PALETTE[idx % PROGRAM_PALETTE.length];
+  }
+
+  function allTasksCombined(){
+    const all = [];
+    Object.keys(programResults).forEach(p => programResults[p].forEach(t => all.push(t)));
+    return all;
+  }
+
+  // Flags tasks that share the same named resource and have overlapping
+  // schedule windows. NOTE: every program's day 0 is its own start date, so
+  // this comparison is only meaningful if you intend all programs to run on
+  // a shared relative calendar — it does not know real calendar dates.
+  function findResourceConflicts(tasks){
+    const byResource = {};
+    tasks.forEach(t => { if (t.resource){ (byResource[t.resource] = byResource[t.resource] || []).push(t); } });
+    const conflicts = [];
+    Object.values(byResource).forEach(list => {
+      for (let i = 0; i < list.length; i++){
+        for (let j = i + 1; j < list.length; j++){
+          const a = list[i], b = list[j];
+          const start = Math.max(a.es, b.es);
+          const end = Math.min(a.ef, b.ef);
+          if (end > start) conflicts.push({ resource: a.resource, a, b, start, end });
+        }
+      }
+    });
+    return conflicts;
+  }
+
+  function renderCombinedPanel(programs){
+    const tasks = allTasksCombined();
+    const projectEnd = Math.max(...tasks.map(t => t.ef));
+    const scale = 620 / Math.max(projectEnd, 1);
+    const criticalCount = tasks.filter(t => t.critical).length;
+    const conflicts = findResourceConflicts(tasks);
+
+    const rows = tasks.map(t => {
+      const color = colorForProgram(programs, t.program);
+      const slackWidth = t.float > 0 ? t.float * scale : 0;
+      return `
+        <div class="gantt-row">
+          <div class="gantt-label">
+            <span class="program-swatch" style="background:${color};"></span><span class="id-tag">${t.id}</span>${t.name}
+            ${t.resource ? `<span class="resource-tag">${t.resource}</span>` : ''}
+          </div>
+          <div class="gantt-track">
+            <div class="gantt-bar${t.critical ? ' critical-border' : ''}" style="left:${t.es * scale}px; width:${Math.max(t.duration * scale, 4)}px; background:${color};">
+              <span class="bar-label">${t.duration}d</span>
+            </div>
+            ${slackWidth > 0 ? `<div class="gantt-bar slack-tail" style="left:${t.ef * scale}px; width:${slackWidth}px; background:${color};"></div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const legendPrograms = programs.map(p => `<span><span class="program-swatch" style="background:${colorForProgram(programs, p)};"></span>${p}</span>`).join('');
+
+    const conflictHtml = conflicts.length
+      ? `<div class="conflict-card">
+           <strong>${conflicts.length} resource conflict(s) detected</strong> &mdash; same resource, overlapping schedule window (assumes all programs share a common day-0 start):
+           ${conflicts.map(c => `<div>&bull; <strong>${c.resource}</strong>: ${c.a.program} / ${c.a.name} (${c.a.id}) overlaps ${c.b.program} / ${c.b.name} (${c.b.id}) on day ${c.start}&ndash;${c.end}</div>`).join('')}
+         </div>`
+      : `<p class="hint" style="margin-top:14px;">No resource conflicts detected among tasks that have a resource assigned.</p>`;
+
+    return `
+      <div class="program-panel${programs.length > 1 ? ' active' : ''}" data-program="__combined__">
+        <div class="summary-stats">
+          <span class="stat-chip">Programs: <strong>${programs.length}</strong></span>
+          <span class="stat-chip">Total tasks: <strong>${tasks.length}</strong></span>
+          <span class="stat-chip">Critical path tasks: <strong>${criticalCount}</strong></span>
+          <span class="stat-chip">Longest program: <strong>${projectEnd}d</strong></span>
+        </div>
+        <p class="hint" style="margin-bottom:10px;">Combined view lines every program up at day 0 for side-by-side comparison &mdash; it doesn't assume they run on the same real calendar dates.</p>
+        <div class="gantt-wrap">${rows}</div>
+        <div class="gantt-legend" style="flex-wrap:wrap;">
+          ${legendPrograms}
+          <span><span class="swatch" style="background:var(--surface); box-shadow:inset 0 0 0 2px var(--ember);"></span>Critical path (bold outline)</span>
+          <span><span class="swatch" style="background:var(--text-faint); opacity:.4;"></span>Slack / float tail</span>
+        </div>
+        ${conflictHtml}
+      </div>
+    `;
+  }
 
   async function runAI(){
     const key = document.getElementById('apiKey').value.trim();
