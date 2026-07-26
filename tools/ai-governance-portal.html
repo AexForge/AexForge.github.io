@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Governance Command Center | AexForge</title>
+<meta name="description" content="Enterprise AI Governance & Agentic AI Governance command center — executive KPIs, maturity radar, risk heatmap, and alert feed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F6F3;--surface:#FFFFFF;--surface-hover:#FCFAF6;--border:#E1E4DF;
+    --text:#1B2430;--text-soft:#5B6472;--text-faint:#8A9099;
+    --forge:#2E5077;--forge-dark:#1F3A57;--ember:#B2542D;--ember-soft:#F1E2D6;
+    --ok:#3D7A5C;--ok-soft:#DCEBE3;--warn:#A6741C;--warn-soft:#F3E7CE;--danger:#B23A3A;--danger-soft:#F4DEDE;
+    --font-display:'Space Grotesk',sans-serif;--font-body:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-0.01em;margin:0;color:var(--text);}
+  header{position:sticky;top:0;background:rgba(245,246,243,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);z-index:50;}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
+  .back-link{font-family:var(--font-mono);font-size:13px;color:var(--text-soft);}
+  .back-link:hover{color:var(--forge);}
+  .wordmark{font-family:var(--font-display);font-weight:700;font-size:16px;}
+  .wordmark span{color:var(--ember);}
+  .nav-links{display:flex;gap:18px;font-family:var(--font-mono);font-size:12.5px;color:var(--text-soft);}
+  .nav-links a:hover{color:var(--forge);}
+  .eyebrow{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--forge);display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--forge);}
+  .hero{padding:44px 0 20px;}
+  .hero h1{font-size:clamp(26px,3.6vw,34px);line-height:1.15;margin-bottom:10px;}
+  .hero p.lede{color:var(--text-soft);font-size:15.5px;max-width:76ch;margin:0;}
+  section{padding:16px 0;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;}
+  .card + .card{margin-top:14px;}
+  .hint{font-size:12.5px;color:var(--text-faint);}
+  footer{padding:40px 0 60px;text-align:center;font-size:13px;color:var(--text-faint);}
+
+  .sample-banner{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--font-mono);font-size:12.5px;color:var(--warn);
+    background:var(--warn-soft);border:1px solid #e7d3a8;border-radius:10px;
+    padding:10px 16px;margin-bottom:20px;
+  }
+  .phase-banner{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    background:var(--forge-dark);color:#EFF3F6;border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:13.5px;
+  }
+  .phase-banner a{font-family:var(--font-mono);font-size:12.5px;color:#9FC1DE;text-decoration:underline;}
+
+  /* ---- KPI grid ---- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+  .kpi-card .label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:8px;}
+  .kpi-card .value{font-family:var(--font-display);font-size:26px;font-weight:600;}
+  .kpi-card .trend{font-size:12px;margin-top:4px;font-family:var(--font-mono);}
+  .trend-up{color:var(--ok);}
+  .trend-down{color:var(--danger);}
+  .trend-flat{color:var(--text-faint);}
+  @media (max-width:900px){ .kpi-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* ---- RAG feed ---- */
+  .feed-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media (max-width:900px){ .feed-grid{grid-template-columns:1fr;} }
+  .feed-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bg);font-size:13px;}
+  .feed-item:last-child{border-bottom:none;}
+  .feed-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+  .dot-red{background:var(--danger);} .dot-amber{background:var(--warn);} .dot-green{background:var(--ok);}
+  .feed-item .when{color:var(--text-faint);font-family:var(--font-mono);font-size:11px;white-space:nowrap;margin-left:auto;padding-left:10px;}
+
+  /* ---- Heatmap ---- */
+  .heatmap-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+  .heatmap{display:grid;grid-template-columns:repeat(5,54px);grid-auto-rows:44px;gap:4px;}
+  .heat-cell{border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:#fff;font-weight:600;}
+  .heatmap-axis{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);text-align:center;}
+  .heat-legend{font-size:12.5px;color:var(--text-soft);}
+  .heat-legend div{margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+  .heat-legend .sw{width:12px;height:12px;border-radius:3px;}
+
+  .section-head{margin-bottom:14px;}
+  .section-head h2{font-size:19px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="back-link" href="../projects.html">&larr; Back to Projects</a>
+    <div class="wordmark">Aex<span>Forge</span></div>
+    <div class="nav-links"><a href="agentic-ai-governance.html">Agentic AI Governance &rarr;</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Enterprise AI Governance</p>
+    <h1>AI Governance Command Center</h1>
+    <p class="lede">
+      Executive visibility across AI systems, controls, compliance, and risk
+      &mdash; project, program, and portfolio level, in one view.
+    </p>
+  </section>
+
+  <section>
+    <div class="phase-banner">
+      <span>This is Phase 1 of a 15-page AI Governance Portal &mdash; the Command Center and the <a href="agentic-ai-governance.html">Agentic AI Governance</a> page are live. The rest are scoped, not yet built.</span>
+    </div>
+    <div class="sample-banner">
+      &#9888; All figures on this page are illustrative sample data for demonstration &mdash; not live metrics. Wire this to your real AI inventory, control library, and risk register before using it operationally.
+    </div>
+  </section>
+
+  <!-- KPI CARDS -->
+  <section>
+    <div class="section-head"><p class="eyebrow" style="margin:0 0 8px;">Executive KPIs</p></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <!-- MATURITY RADAR + PORTFOLIO COUNTS -->
+  <section>
+    <div class="card">
+      <div class="section-head"><h2>AI Governance Maturity</h2><p class="hint">13 dimensions, scored 0&ndash;5 (sample assessment)</p></div>
+      <canvas id="maturityRadar" height="320"></canvas>
+    </div>
+  </section>
+
+  <!-- RISK HEATMAP -->
+  <section>
+    <div class="card">
+      <div class="section-head"><h2>AI Risk Heatmap</h2><p class="hint">Likelihood &times; Impact, open risks by cell</p></div>
+      <div class="heatmap-wrap">
+        <div>
+          <div class="heatmap" id="heatmapGrid"></div>
+          <p class="hint" style="margin-top:8px;">Impact &rarr; (Low to Critical), Likelihood &uarr; (Rare to Almost Certain)</p>
+        </div>
+        <div class="heat-legend">
+          <div><span class="sw" style="background:var(--ok);"></span>Low exposure</div>
+          <div><span class="sw" style="background:var(--warn);"></span>Moderate &mdash; monitor</div>
+          <div><span class="sw" style="background:var(--danger);"></span>High &mdash; escalate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEEDS -->
+  <section>
+    <div class="card">
+      <div class="section-head"><h2>Alerts &amp; Activity</h2></div>
+      <div class="feed-grid">
+        <div>
+          <p class="hint" style="margin-bottom:8px;">LATEST ALERTS</p>
+          <div id="feedAlerts"></div>
+        </div>
+        <div>
+          <p class="hint" style="margin-bottom:8px;">RECENT AI INCIDENTS</p>
+          <div id="feedIncidents"></div>
+        </div>
+        <div>
+          <p class="hint" style="margin-bottom:8px;">RECENT AUDITS &amp; COMPLIANCE ISSUES</p>
+          <div id="feedAudits"></div>
+        </div>
+        <div>
+          <p class="hint" style="margin-bottom:8px;">UPCOMING ASSESSMENTS</p>
+          <div id="feedAssessments"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section>
+    <div class="card">
+      <div class="section-head"><h2>Coming next</h2><p class="hint">Remaining pages in the full portal vision, not yet built</p></div>
+      <ul id="roadmapList" style="columns:2; column-gap:32px; font-size:13.5px; color:var(--text-soft); margin:0; padding-left:18px;"></ul>
+    </div>
+  </section>
+</main>
+
+<footer>Part of the AexForge delivery leadership toolkit &mdash; deterministic core, sample data clearly labeled.</footer>
+
+<script>
+document.getElementById('year');
+
+// ============ KPI CARDS (sample data) ============
+const KPIS = [
+  { label: 'Org AI Score', value: '72 / 100', trend: '+4 vs last quarter', dir: 'up' },
+  { label: 'Compliance %', value: '81%', trend: '+2% vs last quarter', dir: 'up' },
+  { label: 'AI Risk Score', value: 'Medium', trend: 'unchanged', dir: 'flat' },
+  { label: 'Controls Coverage', value: '68%', trend: '-3% vs last quarter', dir: 'down' },
+  { label: 'Open Risks', value: '14', trend: '3 high severity', dir: 'down' },
+  { label: 'Projects / Programs / Portfolios', value: '22 / 6 / 3', trend: 'AI-touching initiatives', dir: 'flat' },
+  { label: 'Agentic AI Systems', value: '5', trend: '2 in production', dir: 'flat' },
+  { label: 'Responsible AI Score', value: '77 / 100', trend: '+1 vs last quarter', dir: 'up' },
+  { label: 'AI Trust Score', value: '74 / 100', trend: 'unchanged', dir: 'flat' },
+  { label: 'AI Security Score', value: '80 / 100', trend: '+5 vs last quarter', dir: 'up' },
+  { label: 'Model Performance', value: '92% avg accuracy', trend: '-1% drift observed', dir: 'down' },
+  { label: 'Human Oversight %', value: '88%', trend: 'of agentic actions reviewed', dir: 'flat' },
+];
+document.getElementById('kpiGrid').innerHTML = KPIS.map(k => `
+  <div class="kpi-card">
+    <div class="label">${k.label}</div>
+    <div class="value">${k.value}</div>
+    <div class="trend trend-${k.dir}">${k.trend}</div>
+  </div>
+`).join('');
+
+// ============ MATURITY RADAR (sample data) ============
+const MATURITY_DIMENSIONS = ['Strategy','Governance','Security','Responsible AI','Compliance','Privacy','Risk','Operations','Technology','Monitoring','People','Culture','Automation'];
+const MATURITY_SCORES = [3.5, 3, 4, 2.5, 3.5, 3, 3, 2.5, 4, 2, 3, 2.5, 2];
+
+new Chart(document.getElementById('maturityRadar'), {
+  type: 'radar',
+  data: {
+    labels: MATURITY_DIMENSIONS,
+    datasets: [{
+      label: 'Current maturity (0-5)',
+      data: MATURITY_SCORES,
+      backgroundColor: 'rgba(46,80,119,0.18)',
+      borderColor: '#2E5077',
+      pointBackgroundColor: '#2E5077',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, backdropColor: 'transparent' }, grid: { color: '#E1E4DF' }, angleLines: { color: '#E1E4DF' }, pointLabels: { font: { family: 'JetBrains Mono', size: 10.5 }, color: '#5B6472' } } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// ============ RISK HEATMAP (sample data, deterministic 5x5) ============
+const HEAT_COUNTS = [
+  [1,2,1,0,0],
+  [2,3,2,1,0],
+  [1,2,4,2,1],
+  [0,1,3,3,1],
+  [0,0,1,2,1],
+].reverse(); // reverse so "Almost Certain" renders at top
+function heatColor(v){
+  if (v === 0) return '#DCEBE3';
+  if (v <= 1) return '#3D7A5C';
+  if (v <= 3) return '#A6741C';
+  return '#B23A3A';
+}
+const heatEl = document.getElementById('heatmapGrid');
+let heatHtml = '';
+HEAT_COUNTS.forEach(row => {
+  row.forEach(v => {
+    heatHtml += `<div class="heat-cell" style="background:${heatColor(v)};">${v}</div>`;
+  });
+});
+heatEl.innerHTML = heatHtml;
+
+// ============ FEEDS (sample data) ============
+function renderFeed(elId, items){
+  document.getElementById(elId).innerHTML = items.map(i => `
+    <div class="feed-item">
+      <span class="feed-dot dot-${i.sev}"></span>
+      <span>${i.text}</span>
+      <span class="when">${i.when}</span>
+    </div>
+  `).join('');
+}
+renderFeed('feedAlerts', [
+  { sev: 'red', text: 'Prompt injection attempt detected on Support Agent', when: '2h ago' },
+  { sev: 'amber', text: 'Model drift threshold approaching on Forecast-v3', when: '1d ago' },
+  { sev: 'green', text: 'Quarterly access review completed', when: '3d ago' },
+]);
+renderFeed('feedIncidents', [
+  { sev: 'red', text: 'Unauthorized tool call blocked in Ops Agent sandbox', when: '5h ago' },
+  { sev: 'amber', text: 'Hallucinated citation flagged in Research Assistant output', when: '2d ago' },
+]);
+renderFeed('feedAudits', [
+  { sev: 'amber', text: 'ISO 42001 gap assessment — 3 findings open', when: '4d ago' },
+  { sev: 'green', text: 'Q2 vendor AI compliance review closed', when: '1w ago' },
+]);
+renderFeed('feedAssessments', [
+  { sev: 'amber', text: 'AI Impact Assessment due — Claims Automation Agent', when: 'in 5 days' },
+  { sev: 'green', text: 'Annual Responsible AI training renewal', when: 'in 3 weeks' },
+]);
+
+// ============ ROADMAP ============
+const ROADMAP = [
+  'AI Governance Assessment (interactive questionnaire)',
+  'AI Impact Assessment',
+  'AI Controls Library',
+  'AI Gap Analysis (upload-driven)',
+  'Continuous Monitoring Dashboard',
+  'AI Regulations mapping (EU AI Act, ISO 42001, NIST AI RMF...)',
+  'AI Policy Management',
+  'AI Risk Management (register + heatmap + treatment)',
+  'AI Integration Dashboard (SDLC/PMO checkpoints)',
+  'AI Security Awareness training dashboard',
+  'Pre-Deployment Validation checklist',
+  'AI Operational Dashboard',
+  'Executive Board Dashboard (one-pager)',
+];
+document.getElementById('roadmapList').innerHTML = ROADMAP.map(r => `<li>${r}</li>`).join('');
+</script>
+</body>
+</html>
